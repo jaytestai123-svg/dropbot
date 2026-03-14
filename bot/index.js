@@ -162,7 +162,12 @@ async function endGiveaway(giveaway) {
 
   // Get entries and pick winners
   const entries = db.getEntries(giveaway.id) || [];
-  const winners = selectWinners(giveaway, entries);
+  const rawWinners = selectWinners(giveaway, entries);
+
+  // Safety: ensure we only store valid string user IDs, never objects
+  const winners = rawWinners
+    .map(w => (typeof w === 'object' ? w?.user_id : w))
+    .filter(id => typeof id === 'string' && id.length > 5);
 
   for (const userId of winners) db.addWinner(giveaway.id, userId);
 
