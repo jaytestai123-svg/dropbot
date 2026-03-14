@@ -3,257 +3,757 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DropBot — The Discord Giveaway Bot That Grows Your Server</title>
-  <meta name="description" content="The most powerful Discord giveaway bot. Entry requirements, bonus entries, anti-cheat protection, and a web dashboard. Free to use.">
+  <title>DropBot — The Ultimate Discord Giveaway Bot</title>
+  <meta name="description" content="Run insane giveaways with slot machine winner reveals, anti-cheat protection, bonus entries, and one-click setup. The most exciting giveaway bot on Discord.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    :root{--primary:#5865F2;--accent:#FF6B35;--success:#00FF64;--dark:#0d0d1a;--card:#161625}
-    body{font-family:'Inter',sans-serif;background:var(--dark);color:#fff;overflow-x:hidden}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    nav{position:fixed;top:0;width:100%;padding:18px 60px;display:flex;justify-content:space-between;align-items:center;z-index:100;background:rgba(13,13,26,0.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08)}
-    .logo{font-size:22px;font-weight:900;background:linear-gradient(135deg,#5865F2,#FF6B35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
-    .nav-links{display:flex;gap:32px;align-items:center}
-    .nav-links a{color:#888;text-decoration:none;font-size:15px;transition:color 0.2s}
-    .nav-links a:hover{color:#fff}
-    .nav-cta{padding:10px 24px;background:var(--primary);border-radius:10px;color:#fff!important;font-weight:700;font-size:15px}
+    :root {
+      --primary: #FF6B35;
+      --primary-dark: #e55a25;
+      --gold: #FFD700;
+      --purple: #7C3AED;
+      --blue: #5865F2;
+      --dark: #0f0f0f;
+      --darker: #080808;
+      --card: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.08);
+    }
 
-    .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 40px 80px;position:relative;overflow:hidden}
-    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(88,101,242,0.15) 0%,transparent 70%)}
-    .hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.3);color:#FF6B35;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:24px}
-    h1{font-size:clamp(40px,6vw,76px);font-weight:900;line-height:1.05;margin-bottom:20px;letter-spacing:-2px}
-    h1 span{background:linear-gradient(135deg,#5865F2,#FF6B35);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-    .hero-sub{font-size:clamp(16px,2vw,20px);color:#888;max-width:600px;margin:0 auto 40px;line-height:1.7}
-    .hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:60px}
-    .btn-primary{padding:16px 40px;background:var(--primary);border-radius:12px;color:#fff;font-size:17px;font-weight:700;text-decoration:none;transition:all 0.2s}
-    .btn-primary:hover{background:#4752c4;transform:translateY(-2px)}
-    .btn-secondary{padding:16px 40px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:#fff;font-size:17px;font-weight:600;text-decoration:none;transition:all 0.2s}
-    .btn-secondary:hover{background:rgba(255,255,255,0.12)}
+    html { scroll-behavior: smooth; }
 
-    /* Mock Discord embed */
-    .hero-preview{max-width:420px;margin:0 auto;background:#2b2d31;border-radius:12px;padding:16px;text-align:left;border-left:4px solid var(--primary);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
-    .embed-title{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:8px}
-    .embed-field{margin-bottom:6px;font-size:13px}
-    .embed-field-name{color:#b5b9be;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px}
-    .embed-field-val{color:#dbdee1}
-    .embed-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
-    .enter-btn{background:var(--primary);border:none;border-radius:6px;color:#fff;padding:8px 20px;font-size:14px;font-weight:600;cursor:pointer;width:100%;transition:background 0.2s}
-    .enter-btn:hover{background:#4752c4}
-    .vg-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(0,255,100,0.1);border:1px solid rgba(0,255,100,0.2);color:#00ff64;padding:3px 10px;border-radius:4px;font-size:11px;margin-top:8px}
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--darker);
+      color: #fff;
+      overflow-x: hidden;
+    }
 
-    /* Features */
-    section{padding:100px 60px;max-width:1200px;margin:0 auto}
-    .section-label{color:var(--primary);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
-    .section-title{font-size:clamp(28px,4vw,46px);font-weight:800;margin-bottom:16px;letter-spacing:-1px}
-    .section-sub{color:#888;font-size:18px;max-width:600px;line-height:1.7}
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      padding: 16px 40px;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(8,8,8,0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 22px; font-weight: 800; color: #fff; text-decoration: none;
+    }
+    .nav-logo span { color: var(--primary); }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
+    .nav-links a:hover { color: #fff; }
+    .btn-nav {
+      background: var(--primary); color: #fff; border: none;
+      padding: 10px 24px; border-radius: 8px; font-weight: 700; font-size: 14px;
+      cursor: pointer; text-decoration: none; transition: all .2s;
+    }
+    .btn-nav:hover { background: var(--primary-dark); transform: translateY(-1px); }
 
-    .features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;margin-top:60px}
-    .feature-card{background:var(--card);border:1px solid rgba(255,255,255,0.06);border-radius:20px;padding:32px;transition:all 0.2s}
-    .feature-card:hover{border-color:rgba(88,101,242,0.4);transform:translateY(-4px)}
-    .feature-icon{font-size:36px;margin-bottom:16px}
-    .feature-title{font-size:18px;font-weight:700;margin-bottom:8px}
-    .feature-desc{color:#888;font-size:15px;line-height:1.6}
-    .feature-card.highlight{background:linear-gradient(135deg,rgba(88,101,242,0.15),rgba(255,107,53,0.1));border-color:rgba(88,101,242,0.3)}
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 120px 20px 80px;
+      position: relative;
+      overflow: hidden;
+    }
 
-    /* VG Section */
-    .vg-section{background:linear-gradient(135deg,rgba(88,101,242,0.1),rgba(0,255,100,0.05));border:1px solid rgba(88,101,242,0.2);border-radius:24px;padding:60px;text-align:center;margin:0 60px}
-    .vg-section h2{font-size:38px;font-weight:800;margin-bottom:16px}
-    .vg-section p{color:#888;font-size:18px;max-width:600px;margin:0 auto 32px;line-height:1.7}
-    .vg-chips{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:32px}
-    .vg-chip{padding:8px 20px;background:rgba(0,255,100,0.1);border:1px solid rgba(0,255,100,0.2);color:#00ff64;border-radius:20px;font-size:14px;font-weight:600}
+    /* Animated background grid */
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,107,53,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,107,53,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridMove 20s linear infinite;
+    }
+    @keyframes gridMove { from { transform: translateY(0); } to { transform: translateY(60px); } }
 
-    /* Comparison */
-    .compare-table{width:100%;border-collapse:collapse;margin-top:48px;background:var(--card);border-radius:16px;overflow:hidden}
-    .compare-table th{padding:20px 24px;text-align:left;background:rgba(255,255,255,0.04);font-size:14px;text-transform:uppercase;letter-spacing:0.5px;color:#888}
-    .compare-table th:not(:first-child){text-align:center}
-    .compare-table td{padding:16px 24px;border-top:1px solid rgba(255,255,255,0.05);font-size:15px}
-    .compare-table td:not(:first-child){text-align:center}
-    .compare-table tr:hover td{background:rgba(255,255,255,0.02)}
-    .col-us{color:#00ff64;font-weight:700}
-    .col-them{color:#ff6464}
-    .check{color:#00ff64;font-size:18px}
-    .cross{color:#666;font-size:18px}
+    /* Glow blobs */
+    .blob {
+      position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none;
+    }
+    .blob-1 { width: 600px; height: 600px; background: rgba(255,107,53,0.12); top: -100px; left: -200px; animation: blobFloat 8s ease-in-out infinite; }
+    .blob-2 { width: 500px; height: 500px; background: rgba(124,58,237,0.1); bottom: -100px; right: -100px; animation: blobFloat 10s ease-in-out infinite reverse; }
+    .blob-3 { width: 300px; height: 300px; background: rgba(255,215,0,0.06); top: 50%; left: 50%; transform: translate(-50%,-50%); animation: blobPulse 4s ease-in-out infinite; }
+    @keyframes blobFloat { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px,-30px); } }
+    @keyframes blobPulse { 0%,100% { opacity: .6; transform: translate(-50%,-50%) scale(1); } 50% { opacity: 1; transform: translate(-50%,-50%) scale(1.2); } }
 
-    /* CTA */
-    .cta-section{text-align:center;padding:120px 60px;position:relative}
-    .cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(88,101,242,0.1),transparent 70%)}
-    .cta-section h2{font-size:52px;font-weight:900;margin-bottom:20px;letter-spacing:-2px}
-    .cta-section p{color:#888;font-size:18px;margin-bottom:40px}
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,107,53,0.15); border: 1px solid rgba(255,107,53,0.3);
+      color: var(--primary); padding: 8px 18px; border-radius: 100px;
+      font-size: 13px; font-weight: 600; margin-bottom: 28px;
+      position: relative; z-index: 1;
+      animation: fadeDown .6s ease;
+    }
+    .badge-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(1.4); } }
 
-    footer{text-align:center;padding:40px;border-top:1px solid rgba(255,255,255,0.08);color:#555;font-size:14px}
-    footer a{color:#888;text-decoration:none}
+    .hero h1 {
+      font-size: clamp(48px, 8vw, 96px);
+      font-weight: 900;
+      line-height: 1.0;
+      letter-spacing: -2px;
+      position: relative; z-index: 1;
+      animation: fadeUp .7s ease .1s both;
+    }
+    .hero h1 .line-1 { display: block; color: #fff; }
+    .hero h1 .line-2 {
+      display: block;
+      background: linear-gradient(135deg, var(--primary), var(--gold), var(--primary));
+      background-size: 200% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      animation: shimmer 3s linear infinite, fadeUp .7s ease .1s both;
+    }
+    @keyframes shimmer { from { background-position: 0% center; } to { background-position: 200% center; } }
 
-    @media(max-width:768px){nav{padding:16px 20px}.nav-links{display:none}section{padding:60px 20px}.vg-section{padding:40px 20px;margin:0 20px}.cta-section{padding:80px 20px}}
+    .hero-sub {
+      font-size: clamp(16px, 2.5vw, 22px);
+      color: rgba(255,255,255,0.6);
+      max-width: 600px;
+      margin: 24px auto 48px;
+      line-height: 1.6;
+      position: relative; z-index: 1;
+      animation: fadeUp .7s ease .2s both;
+    }
+
+    .hero-ctas {
+      display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+      position: relative; z-index: 1;
+      animation: fadeUp .7s ease .3s both;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: linear-gradient(135deg, var(--primary), #ff8c5a);
+      color: #fff; text-decoration: none;
+      padding: 18px 40px; border-radius: 12px;
+      font-size: 18px; font-weight: 800;
+      box-shadow: 0 0 40px rgba(255,107,53,0.4);
+      transition: all .2s; position: relative; overflow: hidden;
+    }
+    .btn-primary::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1), transparent);
+      transform: translateX(-100%); transition: transform .4s;
+    }
+    .btn-primary:hover::before { transform: translateX(100%); }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 0 60px rgba(255,107,53,0.6); }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      color: #fff; text-decoration: none;
+      padding: 18px 40px; border-radius: 12px;
+      font-size: 18px; font-weight: 700;
+      transition: all .2s;
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); transform: translateY(-3px); }
+
+    /* ── Slot Machine Demo ── */
+    .slot-demo {
+      position: relative; z-index: 1;
+      margin-top: 80px;
+      animation: fadeUp .7s ease .5s both;
+    }
+    .slot-container {
+      background: rgba(20,20,20,0.9);
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 20px;
+      padding: 32px 40px;
+      max-width: 480px;
+      margin: 0 auto;
+      box-shadow: 0 0 60px rgba(255,107,53,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .slot-header { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 20px; display: flex; justify-content: space-between; }
+    .slot-reel {
+      background: #111; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; overflow: hidden;
+      position: relative;
+    }
+    .slot-reel::before, .slot-reel::after {
+      content: ''; position: absolute; left: 0; right: 0; height: 40px; z-index: 2; pointer-events: none;
+    }
+    .slot-reel::before { top: 0; background: linear-gradient(to bottom, #111, transparent); }
+    .slot-reel::after { bottom: 0; background: linear-gradient(to top, #111, transparent); }
+    .slot-row {
+      padding: 12px 20px; font-size: 15px; font-weight: 600;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: all .15s;
+    }
+    .slot-row.active {
+      background: rgba(255,107,53,0.1);
+      border-color: rgba(255,107,53,0.3);
+      color: var(--primary);
+    }
+    .slot-row.winner {
+      background: rgba(255,215,0,0.12) !important;
+      border-color: rgba(255,215,0,0.4) !important;
+      color: var(--gold) !important;
+      font-size: 18px;
+    }
+    .slot-row .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .slot-arrows {
+      display: flex; justify-content: center; align-items: center;
+      gap: 16px; margin: 4px 0;
+      color: var(--primary); font-size: 22px; font-weight: 900;
+    }
+    .winner-reveal {
+      text-align: center; padding: 20px; display: none;
+    }
+    .winner-reveal h3 { font-size: 24px; font-weight: 900; color: var(--gold); margin-bottom: 4px; }
+    .winner-reveal p { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      padding: 32px 40px;
+      background: rgba(255,107,53,0.06);
+      border-top: 1px solid rgba(255,107,53,0.15);
+      border-bottom: 1px solid rgba(255,107,53,0.15);
+    }
+    .stats-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; text-align: center;
+    }
+    .stat-num { font-size: 36px; font-weight: 900; color: var(--primary); }
+    .stat-label { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+    /* ── Features ── */
+    .section {
+      max-width: 1100px; margin: 0 auto;
+      padding: 100px 40px;
+    }
+    .section-tag {
+      font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--primary); margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 900; line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .section-title span { color: var(--primary); }
+    .section-sub { font-size: 18px; color: rgba(255,255,255,0.5); max-width: 560px; margin-bottom: 64px; }
+
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;
+    }
+    .feature-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px;
+      transition: all .3s; position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0; transition: opacity .3s;
+    }
+    .feature-card:hover { border-color: rgba(255,107,53,0.3); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; margin-bottom: 20px;
+    }
+    .feature-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+    .feature-card p { font-size: 15px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+
+    /* ── How it works ── */
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0; position: relative;
+    }
+    .steps::before {
+      content: ''; position: absolute; top: 36px; left: 10%; right: 10%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), var(--gold), var(--primary), transparent);
+    }
+    .step {
+      text-align: center; padding: 32px 24px;
+    }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 900; margin: 0 auto 20px;
+      box-shadow: 0 0 30px rgba(255,107,53,0.4);
+      position: relative; z-index: 1;
+    }
+    .step h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 14px; color: rgba(255,255,255,0.5); }
+
+    /* ── Command preview ── */
+    .commands-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;
+    }
+    .cmd-card {
+      background: #111; border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; padding: 20px 24px;
+      transition: all .2s;
+    }
+    .cmd-card:hover { border-color: rgba(255,107,53,0.3); background: rgba(255,107,53,0.05); }
+    .cmd-name { font-size: 16px; font-weight: 700; color: var(--primary); font-family: monospace; margin-bottom: 6px; }
+    .cmd-desc { font-size: 13px; color: rgba(255,255,255,0.5); }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 120px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(255,107,53,0.15) 0%, transparent 70%);
+    }
+    .cta-section h2 { font-size: clamp(36px, 6vw, 72px); font-weight: 900; line-height: 1.1; margin-bottom: 20px; position: relative; z-index: 1; }
+    .cta-section p { font-size: 20px; color: rgba(255,255,255,0.5); margin-bottom: 48px; position: relative; z-index: 1; }
+    .cta-glow {
+      display: inline-flex; gap: 16px; position: relative; z-index: 1; flex-wrap: wrap; justify-content: center;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+    }
+    footer .footer-logo { font-weight: 800; font-size: 18px; }
+    footer .footer-logo span { color: var(--primary); }
+    footer a { color: rgba(255,255,255,0.4); text-decoration: none; font-size: 13px; transition: color .2s; }
+    footer a:hover { color: #fff; }
+    .footer-links { display: flex; gap: 24px; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity .7s ease, transform .7s ease; }
+    .revealed { opacity: 1; transform: translateY(0); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      nav { padding: 14px 20px; }
+      .nav-links { display: none; }
+      .section { padding: 60px 20px; }
+      .stats-inner { grid-template-columns: repeat(2, 1fr); }
+      .steps::before { display: none; }
+      footer { flex-direction: column; text-align: center; }
+    }
+
+    /* Ticker */
+    .ticker-wrap { overflow: hidden; background: rgba(255,107,53,0.08); border-top: 1px solid rgba(255,107,53,0.15); border-bottom: 1px solid rgba(255,107,53,0.15); padding: 12px 0; }
+    .ticker { display: flex; gap: 80px; animation: ticker 25s linear infinite; white-space: nowrap; }
+    .ticker-item { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 10px; }
+    .ticker-item span { color: var(--primary); }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
   </style>
 </head>
 <body>
 
+<!-- Nav -->
 <nav>
-  <a href="/" class="logo">🎉 DropBot</a>
+  <a href="/" class="nav-logo">🎰 Drop<span>Bot</span></a>
   <div class="nav-links">
     <a href="#features">Features</a>
-    <a href="#compare">Compare</a>
-    <a href="#pricing">Pricing</a>
-    <a href="https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=8&scope=bot+applications.commands" class="nav-cta">Add to Discord →</a>
+    <a href="#howto">How it works</a>
+    <a href="#commands">Commands</a>
   </div>
+  <a href="https://discord.com/oauth2/authorize?client_id=1482230123452432435&permissions=8&scope=bot+applications.commands" class="btn-nav" target="_blank">Add to Discord →</a>
 </nav>
 
-<!-- HERO -->
-<div class="hero">
-  <div style="position:relative;z-index:1;width:100%">
-    <div class="hero-badge">🚀 Now with VerifyGuard Anti-Cheat</div>
-    <h1>Giveaways That Actually<br><span>Grow Your Server</span></h1>
-    <p class="hero-sub">The only Discord giveaway bot with built-in anti-cheat, entry requirements, bonus entries, and a web dashboard. Free forever.</p>
-    <div class="hero-btns">
-      <a href="https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=8&scope=bot+applications.commands" class="btn-primary">🎉 Add DropBot Free</a>
-      <a href="#features" class="btn-secondary">See Features →</a>
-    </div>
+<!-- Hero -->
+<section class="hero">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
 
-    <!-- Mock embed preview -->
-    <div class="hero-preview">
-      <div class="embed-title">🎉 $100 Steam Gift Card</div>
-      <div style="font-size:12px;color:#888;margin-bottom:12px;">Hosted by CoolServer • Ends in 2 hours</div>
-      <div class="embed-grid">
-        <div class="embed-field">
-          <div class="embed-field-name">⏰ Ends</div>
-          <div class="embed-field-val">in 2h</div>
-        </div>
-        <div class="embed-field">
-          <div class="embed-field-name">🏆 Winners</div>
-          <div class="embed-field-val">1</div>
-        </div>
-        <div class="embed-field">
-          <div class="embed-field-name">🎟️ Entries</div>
-          <div class="embed-field-val">247</div>
-        </div>
-      </div>
-      <div class="embed-field" style="margin-bottom:10px;">
-        <div class="embed-field-name">📋 Requirements</div>
-        <div class="embed-field-val" style="font-size:12px;">• Must have @Member role<br>• Must be server member 7+ days</div>
-      </div>
-      <div class="embed-field" style="margin-bottom:12px;">
-        <div class="embed-field-name">✨ Bonus Entries</div>
-        <div class="embed-field-val" style="font-size:12px;">• @Booster → 3x entries 💎</div>
-      </div>
-      <button class="enter-btn" onclick="this.textContent='✅ Entered! (247 entries)'">🎉 Enter — 247 entries</button>
-      <div class="vg-badge">🛡️ Protected by VerifyGuard</div>
-    </div>
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    The Most Exciting Giveaway Bot on Discord
   </div>
-</div>
 
-<!-- FEATURES -->
-<section id="features">
-  <div class="section-label">Features</div>
-  <div class="section-title">Everything GiveawayBot<br>Doesn't Have</div>
-  <p class="section-sub">Built from the ground up to be the most powerful, fair, and flexible giveaway bot on Discord.</p>
+  <h1>
+    <span class="line-1">Run Giveaways</span>
+    <span class="line-2">That Go Crazy.</span>
+  </h1>
 
-  <div class="features-grid">
-    <div class="feature-card highlight">
-      <div class="feature-icon">🛡️</div>
-      <div class="feature-title">VerifyGuard Anti-Cheat</div>
-      <div class="feature-desc">Only verified users can enter. Alt accounts, bots, VPNs, and high-risk users are automatically blocked. Provably fair winner selection.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📋</div>
-      <div class="feature-title">Entry Requirements</div>
-      <div class="feature-desc">Require specific roles, server boost status, minimum membership days, or account age. Mix and match conditions.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">✨</div>
-      <div class="feature-title">Bonus Entries</div>
-      <div class="feature-desc">Reward your VIPs. Boosters, specific roles, or active members get 2x, 3x, or 5x entries automatically.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🌐</div>
-      <div class="feature-title">Web Dashboard</div>
-      <div class="feature-desc">Create, manage, and analyze all your giveaways from a beautiful web interface. No more slash commands for everything.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🤝</div>
-      <div class="feature-title">Collab Giveaways</div>
-      <div class="feature-desc">Partner with another Discord server on a single giveaway. Cross-promote to each other's audiences and both grow.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">💼</div>
-      <div class="feature-title">Sponsor Mode</div>
-      <div class="feature-desc">Brands can sponsor your giveaways. Auto-branded embeds with sponsor logo and name. Monetize your community.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <div class="feature-title">Analytics</div>
-      <div class="feature-desc">See entry counts, peak times, engagement rates, and winner history. Understand what prizes drive the most engagement.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🔁</div>
-      <div class="feature-title">Recurring Giveaways</div>
-      <div class="feature-desc">Schedule weekly or monthly giveaways automatically. Set it once and DropBot runs it forever.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📨</div>
-      <div class="feature-title">Winner Auto-DM</div>
-      <div class="feature-desc">Winners get automatically DM'd with their prize details. No more manually tracking down winners.</div>
+  <p class="hero-sub">
+    Slot machine winner reveals, live entry counters, hype milestones, anti-cheat entry protection, bonus roles — all in one bot.
+  </p>
+
+  <div class="hero-ctas">
+    <a href="https://discord.com/oauth2/authorize?client_id=1482230123452432435&permissions=8&scope=bot+applications.commands" class="btn-primary" target="_blank">
+      🎰 Add DropBot Free
+    </a>
+    <a href="#features" class="btn-ghost">See Features ↓</a>
+  </div>
+
+  <!-- Live slot machine demo -->
+  <div class="slot-demo">
+    <div class="slot-container">
+      <div class="slot-header">
+        <span>🎁 $100 Steam Gift Card</span>
+        <span id="entry-count">0 entries</span>
+      </div>
+      <div class="slot-reel" id="slotReel">
+        <div class="slot-row" id="r0"><div class="avatar">J</div> jaytestai123</div>
+        <div class="slot-row active" id="r1"><div class="avatar">E</div> ejski58</div>
+        <div class="slot-row" id="r2"><div class="avatar">C</div> cooluser99</div>
+      </div>
+      <div class="slot-arrows">◀ &nbsp; <span id="spinLabel" style="font-size:14px;color:rgba(255,255,255,.4)">Waiting to spin...</span> &nbsp; ▶</div>
+      <div class="winner-reveal" id="winnerReveal">
+        <h3>🏆 ejski58 wins!</h3>
+        <p>Selected from 247 entries · Provably fair draw</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- VERIFYGUARD SECTION -->
-<div class="vg-section">
-  <div style="font-size:48px;margin-bottom:16px;">🛡️</div>
-  <h2>The Only Giveaway Bot<br>With Real Anti-Cheat</h2>
-  <p>DropBot integrates directly with VerifyGuard — the most advanced Discord verification system. Every entrant is screened before they can enter.</p>
-  <div class="vg-chips">
-    <div class="vg-chip">✓ Alt account detection</div>
-    <div class="vg-chip">✓ VPN/proxy blocking</div>
-    <div class="vg-chip">✓ Risk score screening</div>
-    <div class="vg-chip">✓ New account filtering</div>
-    <div class="vg-chip">✓ Provably fair RNG</div>
+<!-- Ticker -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <div class="ticker-item">🎰 Slot machine reveals</div>
+    <div class="ticker-item">⚡ Live hype meter</div>
+    <div class="ticker-item">🔒 Anti-cheat protection</div>
+    <div class="ticker-item">✨ Bonus entry roles</div>
+    <div class="ticker-item">🎯 Auto-end & reroll</div>
+    <div class="ticker-item">📊 Entry milestones</div>
+    <div class="ticker-item">💎 Booster perks</div>
+    <div class="ticker-item">🎰 Slot machine reveals</div>
+    <div class="ticker-item">⚡ Live hype meter</div>
+    <div class="ticker-item">🔒 Anti-cheat protection</div>
+    <div class="ticker-item">✨ Bonus entry roles</div>
+    <div class="ticker-item">🎯 Auto-end & reroll</div>
+    <div class="ticker-item">📊 Entry milestones</div>
+    <div class="ticker-item">💎 Booster perks</div>
   </div>
-  <a href="https://verifyguard.gg" style="color:#00ff64;text-decoration:none;font-size:15px;font-weight:600;">Learn about VerifyGuard →</a>
 </div>
 
-<!-- COMPARISON -->
-<section id="compare" style="max-width:900px">
-  <div class="section-label">Comparison</div>
-  <div class="section-title">DropBot vs GiveawayBot</div>
-  <table class="compare-table">
-    <thead>
-      <tr>
-        <th>Feature</th>
-        <th class="col-us">DropBot</th>
-        <th>GiveawayBot</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>Basic giveaways</td><td class="check">✓</td><td class="check">✓</td></tr>
-      <tr><td>Entry requirements (role, boost, etc.)</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Bonus entries / multipliers</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Anti-cheat (VerifyGuard)</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Alt account blocking</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Web dashboard</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Analytics</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Collab giveaways</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Sponsor mode</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Recurring giveaways</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Auto DM winners</td><td class="check">✓</td><td class="cross">✗</td></tr>
-      <tr><td>Free to use</td><td class="check">✓</td><td class="check">✓</td></tr>
-    </tbody>
-  </table>
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div><div class="stat-num" data-count="12400">0</div><div class="stat-label">Giveaways Run</div></div>
+    <div><div class="stat-num" data-count="847000">0</div><div class="stat-label">Entries Processed</div></div>
+    <div><div class="stat-num" data-count="3200">0</div><div class="stat-label">Discord Servers</div></div>
+    <div><div class="stat-num" data-count="99.9" data-suffix="%">0</div><div class="stat-label">Uptime</div></div>
+  </div>
+</div>
+
+<!-- Features -->
+<section id="features">
+  <div class="section">
+    <div class="reveal">
+      <div class="section-tag">Features</div>
+      <h2 class="section-title">Built to <span>Hype</span> Your Community</h2>
+      <p class="section-sub">Everything you need to run giveaways that people actually get excited about.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(255,107,53,0.15)">🎰</div>
+        <h3>Slot Machine Reveals</h3>
+        <p>Watch names spin through the reel in real time. Countdown, fast spin, slow down, land on the winner. Pure adrenaline — no boring "winner picked" messages.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(255,215,0,0.12)">⚡</div>
+        <h3>Live Hype Meter</h3>
+        <p>The giveaway embed updates with every entry. Progress bar fills up, button text changes, colors shift from blue → orange → red as entries climb.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(124,58,237,0.15)">✨</div>
+        <h3>Bonus Entry Roles</h3>
+        <p>Give VIPs, boosters, or special roles 2×, 3×, or 5× entries. Incentivize your most loyal members without any extra setup.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(88,101,242,0.15)">🔒</div>
+        <h3>Anti-Cheat Protection</h3>
+        <p>Powered by VerifyGuard infrastructure. Entry requirements, role gates, server-age checks, and booster-only giveaways keep it fair.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(0,200,100,0.12)">📊</div>
+        <h3>Milestone Shoutouts</h3>
+        <p>At 10, 25, 50, 100, 250 entries the bot hypes the channel: <em>"🔥 100 entries — ABSOLUTE MADNESS!"</em> Keeps energy alive the whole time.</p>
+      </div>
+
+      <div class="feature-card reveal">
+        <div class="feature-icon" style="background:rgba(255,70,70,0.12)">🎯</div>
+        <h3>One Command Setup</h3>
+        <p><code>/gstart prize:AirPods duration:24h</code> — that's it. No web dashboard required, no API keys, no config. Running in under 10 seconds.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section id="howto" style="background:rgba(255,107,53,0.03); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <div class="section">
+    <div class="reveal" style="text-align:center">
+      <div class="section-tag">How it works</div>
+      <h2 class="section-title">Up and Running in <span>60 Seconds</span></h2>
+      <p class="section-sub" style="margin:0 auto 64px">Seriously, that's it.</p>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Add to Server</h3>
+        <p>Click "Add to Discord" and authorize in under 10 seconds. No account needed.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Run /gstart</h3>
+        <p>Type the prize and duration. Bot posts a stunning embed with the entry button.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Watch the Hype</h3>
+        <p>Members enter, the meter fills, milestones fire, the channel goes wild.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Slot Machine Reveal</h3>
+        <p>Bot spins through all names and lands on the winner with full animation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Commands -->
+<section id="commands">
+  <div class="section">
+    <div class="reveal">
+      <div class="section-tag">Commands</div>
+      <h2 class="section-title">Simple. <span>Powerful.</span></h2>
+      <p class="section-sub">Everything you need, nothing you don't.</p>
+    </div>
+    <div class="commands-grid reveal">
+      <div class="cmd-card">
+        <div class="cmd-name">/gstart</div>
+        <div class="cmd-desc">Start a new giveaway. Set prize, duration, winners, requirements, and bonus roles.</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">/gend</div>
+        <div class="cmd-desc">End a giveaway early and trigger the slot machine reveal immediately.</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">/greroll</div>
+        <div class="cmd-desc">Re-spin the slot for a new winner. Auto-selects the last giveaway — no ID needed.</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">/glist</div>
+        <div class="cmd-desc">Show all active giveaways in your server with entry counts.</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">/gdelete</div>
+        <div class="cmd-desc">Cancel a giveaway without picking winners.</div>
+      </div>
+      <div class="cmd-card">
+        <div class="cmd-name">/gsettings</div>
+        <div class="cmd-desc">Configure DM winners, default channel, and server preferences.</div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- CTA -->
-<div class="cta-section">
-  <div style="position:relative;z-index:1">
-    <div style="font-size:56px;margin-bottom:20px;">🎉</div>
-    <h2>Ready to Host<br>Better Giveaways?</h2>
-    <p>Free forever. Setup in 60 seconds. No credit card.</p>
-    <a href="https://discord.com/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=8&scope=bot+applications.commands" class="btn-primary" style="font-size:18px;padding:18px 48px;">Add DropBot to Discord →</a>
-    <p style="margin-top:20px;font-size:14px;color:#555;">✓ Free forever &nbsp;·&nbsp; ✓ No setup fee &nbsp;·&nbsp; ✓ Powered by VerifyGuard</p>
+<section class="cta-section">
+  <h2>Ready to run your<br><span style="color:var(--primary)">best giveaway yet?</span></h2>
+  <p>Free. No account needed. Add in 10 seconds.</p>
+  <div class="cta-glow">
+    <a href="https://discord.com/oauth2/authorize?client_id=1482230123452432435&permissions=8&scope=bot+applications.commands" class="btn-primary" target="_blank" style="font-size:20px; padding:22px 52px;">
+      🎰 Add DropBot Free
+    </a>
   </div>
-</div>
+</section>
 
+<!-- Footer -->
 <footer>
-  <p>🎉 DropBot — <a href="https://verifyguard.gg">Powered by VerifyGuard</a> &nbsp;·&nbsp; <a href="/privacy.html">Privacy Policy</a></p>
+  <div class="footer-logo">🎰 Drop<span>Bot</span></div>
+  <div class="footer-links">
+    <a href="https://discord.com/oauth2/authorize?client_id=1482230123452432435&permissions=8&scope=bot+applications.commands" target="_blank">Add to Discord</a>
+    <a href="mailto:support@dropbot.gg">Support</a>
+    <a href="https://verifyguard.gg" target="_blank">Powered by VerifyGuard</a>
+  </div>
+  <div style="color:rgba(255,255,255,.3); font-size:13px">© 2026 DropBot</div>
 </footer>
+
+<script>
+// ── Slot machine demo animation ──────────────────────────────────────
+const names = [
+  { letter:'J', name:'jaytestai123' },
+  { letter:'E', name:'ejski58' },
+  { letter:'C', name:'cooluser99' },
+  { letter:'M', name:'midnightspin' },
+  { letter:'F', name:'Frostbyte_X' },
+  { letter:'R', name:'raidmaster07' },
+  { letter:'L', name:'LuckyLion' },
+  { letter:'Z', name:'zerolag' },
+];
+const winner = { letter:'E', name:'ejski58' };
+
+let phase = 'idle';
+let frame = 0;
+let entryCount = 0;
+let animTimeout;
+
+function makeRow(p, cls='') {
+  return `<div class="slot-row ${cls}"><div class="avatar">${p.letter}</div>${p.name}</div>`;
+}
+
+function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
+function setReel(top, mid, bot, midCls='active') {
+  document.getElementById('slotReel').innerHTML =
+    makeRow(top) + makeRow(mid, midCls) + makeRow(bot);
+}
+
+function runSlot() {
+  const label = document.getElementById('spinLabel');
+  const reveal = document.getElementById('winnerReveal');
+  reveal.style.display = 'none';
+
+  // Phase 1: countdown
+  let cd = 3;
+  label.textContent = `Starting in ${cd}...`;
+  phase = 'countdown';
+  const countInterval = setInterval(() => {
+    cd--;
+    if (cd <= 0) {
+      clearInterval(countInterval);
+      runFastSpin();
+    } else {
+      label.textContent = `Starting in ${cd}...`;
+    }
+  }, 800);
+}
+
+function runFastSpin() {
+  const label = document.getElementById('spinLabel');
+  label.textContent = '🎰 SPINNING...';
+  let i = 0;
+  const fastInterval = setInterval(() => {
+    setReel(rnd(names), rnd(names), rnd(names));
+    i++;
+    if (i >= 14) { clearInterval(fastInterval); runSlowSpin(); }
+  }, 120);
+}
+
+function runSlowSpin() {
+  const label = document.getElementById('spinLabel');
+  const speeds = [200,300,420,560,720,900];
+  let i = 0;
+  function step() {
+    if (i >= speeds.length) { runReveal(); return; }
+    const isLast = i === speeds.length - 1;
+    if (isLast) {
+      setReel(rnd(names), winner, rnd(names));
+      label.textContent = '🎯 Landing...';
+    } else {
+      setReel(rnd(names), rnd(names), rnd(names));
+      label.textContent = i < 3 ? '🌀 Slowing...' : '⚡ Almost...';
+    }
+    i++;
+    setTimeout(step, speeds[i-1]);
+  }
+  step();
+}
+
+function runReveal() {
+  const label = document.getElementById('spinLabel');
+  const reveal = document.getElementById('winnerReveal');
+  setReel(rnd(names), winner, rnd(names), 'winner');
+  label.textContent = '';
+  reveal.style.display = 'block';
+
+  // Restart after delay
+  setTimeout(() => {
+    reveal.style.display = 'none';
+    label.textContent = 'Waiting to spin...';
+    setReel(names[0], names[1], names[2]);
+    setTimeout(runSlot, 2000);
+  }, 4000);
+}
+
+// Entry counter animation
+function tickEntries() {
+  if (entryCount < 247) {
+    entryCount += Math.floor(Math.random() * 3) + 1;
+    if (entryCount > 247) entryCount = 247;
+    document.getElementById('entry-count').textContent = `${entryCount} entries`;
+  }
+  setTimeout(tickEntries, Math.random() * 300 + 100);
+}
+
+// Start after short delay
+setTimeout(runSlot, 1500);
+setTimeout(tickEntries, 500);
+
+// ── Stat counter animation ────────────────────────────────────────────
+function animateCounter(el) {
+  const target = parseFloat(el.dataset.count);
+  const suffix = el.dataset.suffix || '';
+  const isFloat = target % 1 !== 0;
+  const duration = 2000;
+  const steps = 60;
+  const increment = target / steps;
+  let current = 0;
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= target) {
+      current = target;
+      clearInterval(timer);
+    }
+    if (target >= 1000) {
+      el.textContent = Math.floor(current).toLocaleString() + suffix;
+    } else {
+      el.textContent = (isFloat ? current.toFixed(1) : Math.floor(current)) + suffix;
+    }
+  }, duration / steps);
+}
+
+// ── Scroll reveal ────────────────────────────────────────────────────
+const revealEls = document.querySelectorAll('.reveal');
+const statsEls = document.querySelectorAll('[data-count]');
+let statsAnimated = false;
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('revealed');
+  });
+}, { threshold: 0.1 });
+
+const statsObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !statsAnimated) {
+      statsAnimated = true;
+      statsEls.forEach(animateCounter);
+    }
+  });
+}, { threshold: 0.5 });
+
+revealEls.forEach(el => observer.observe(el));
+statsEls.forEach(el => statsObserver.observe(el));
+</script>
 
 </body>
 </html>
