@@ -173,11 +173,12 @@ async function endGiveaway(giveaway) {
   if (!channel) return;
 
   // Pick winners
-  const entries = db.getEntries(giveaway.id);
-  const winners = selectWinners(entries, giveaway.winner_count);
+  const entries = db.getEntries(giveaway.id); // flat weighted array of user IDs
+  const winnerObjs = selectWinners(giveaway, entries);
+  const winners = winnerObjs.map(w => w.user_id);
 
   // Save winners
-  for (const w of winners) db.addWinner(giveaway.id, w);
+  for (const userId of winners) db.addWinner(giveaway.id, userId);
 
   // Update embed
   try {

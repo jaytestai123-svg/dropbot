@@ -105,18 +105,14 @@ function buildEntryButton(entryCount = 0) {
  * Provably fair winner selection (weighted by entry_count)
  */
 function selectWinners(giveaway, entries) {
-  if (entries.length === 0) return [];
+  if (!entries || entries.length === 0) return [];
 
-  // Build weighted pool
-  const pool = [];
-  for (const entry of entries) {
-    for (let i = 0; i < (entry.entry_count || 1); i++) {
-      pool.push(entry.user_id);
-    }
-  }
+  // entries is a flat weighted array of user ID strings (from db.getEntries)
+  const pool = entries;
+  const uniqueEntrants = [...new Set(pool)];
 
   const winners = new Set();
-  const maxWinners = Math.min(giveaway.winner_count, entries.length);
+  const maxWinners = Math.min(giveaway.winner_count || 1, uniqueEntrants.length);
   let attempts = 0;
 
   while (winners.size < maxWinners && attempts < pool.length * 3) {
@@ -126,8 +122,7 @@ function selectWinners(giveaway, entries) {
   }
 
   return [...winners].map(userId => {
-    const entry = entries.find(e => e.user_id === userId);
-    return { user_id: userId, username: entry?.username || userId };
+    return { user_id: userId, username: userId };
   });
 }
 
