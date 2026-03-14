@@ -8,20 +8,42 @@ module.exports = {
     .setName('gend')
     .setDescription('🏁 End a giveaway early and pick winners')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-    .addStringOption(o => o.setName('id').setDescription('Giveaway ID (first 8 chars)').setRequired(true)),
+    .addStringOption(o => o
+      .setName('giveaway')
+      .setDescription('Select the giveaway to end')
+      .setRequired(true)
+      .setAutocomplete(true)
+    ),
+
+  // Autocomplete handler — shows active giveaways in this server
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused().toLowerCase();
+    const active = db.getActiveGiveaways(interaction.guildId) || [];
+    const choices = active
+      .filter(g => g.prize.toLowerCase().includes(focused) || g.id.startsWith(focused))
+      .slice(0, 25)
+      .map(g => ({
+        name: `🎉 ${g.prize.slice(0, 50)} — ends <soon>`,
+        value: g.id
+      }));
+    await interaction.respond(choices);
+  },
 
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
-    const shortId = interaction.options.getString('id');
-    const all = db.getAllActiveGiveaways ? db.getAllActiveGiveaways() : [];
-    const giveaway = all.find(g => g.id.startsWith(shortId) && g.guild_id === interaction.guildId);
+    const giveawayId = interaction.options.getString('giveaway');
+    const giveaway = db.getGiveaway(giveawayId);
 
-    if (!giveaway) return interaction.editReply({ content: `❌ No active giveaway found with ID \`${shortId}\`.` });
+    if (!giveaway || giveaway.guild_id !== interaction.guildId) {
+      return interaction.editReply({ content: '❌ Giveaway not found.' });
+    }
+    if (giveaway.status !== 'active') {
+      return interaction.editReply({ content: '❌ This giveaway has already ended.' });
+    }
 
     db.setGiveawayStatus(giveaway.id, 'ended');
 
-    // Pick winners — returns array of user ID strings
     const entries = db.getEntries(giveaway.id) || [];
     const winners = selectWinners(giveaway, entries)
       .map(w => typeof w === 'object' ? w?.user_id : w)
@@ -29,7 +51,6 @@ module.exports = {
 
     for (const userId of winners) db.addWinner(giveaway.id, userId);
 
-    // Update embed
     try {
       const channel = await interaction.guild.channels.fetch(giveaway.channel_id);
       const msg = await channel.messages.fetch(giveaway.message_id);
@@ -43,13 +64,12 @@ module.exports = {
       );
       await msg.edit({ embeds: [endedEmbed], components: [disabledRow] });
 
-      // 🎰 Slot machine reveal
       const uniqueEntrants = [...new Set(entries)];
       await slotMachineReveal(channel, giveaway, winners, uniqueEntrants, interaction.client);
     } catch (e) {
-      console.error('gend embed update error:', e.message);
+      console.error('gend error:', e.message);
     }
 
-    await interaction.editReply({ content: `✅ Giveaway ended! **${winners.length}** winner(s) selected.` });
+    await interaction.editReply({ content: `✅ Ended **${giveaway.prize}**! **${winners.length}** winner(s) selected.` });
   }
 };

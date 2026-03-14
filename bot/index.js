@@ -34,6 +34,18 @@ client.on('guildCreate', guild => {
 
 // ── Interaction handler ───────────────────────────────────────────────
 client.on('interactionCreate', async interaction => {
+  // Autocomplete
+  if (interaction.isAutocomplete()) {
+    const cmd = client.commands.get(interaction.commandName);
+    if (cmd?.autocomplete) {
+      await cmd.autocomplete(interaction).catch(e => {
+        console.error(`[autocomplete:${interaction.commandName}]`, e.message);
+        interaction.respond([]).catch(() => {});
+      });
+    }
+    return;
+  }
+
   if (interaction.isChatInputCommand()) {
     const cmd = client.commands.get(interaction.commandName);
     if (!cmd) return;
