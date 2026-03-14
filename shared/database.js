@@ -148,21 +148,29 @@ const addEntry = (data) => db.prepare(`
   VALUES (@giveaway_id, @user_id, @username, @entry_count, @verified_by_vg, @vg_risk_score)
   ON CONFLICT(giveaway_id, user_id) DO NOTHING
 `).run(data);
+const hasEntered = (giveawayId, userId) => !!db.prepare('SELECT 1 FROM entries WHERE giveaway_id = ? AND user_id = ?').get(giveawayId, userId);
 const getEntry = (giveawayId, userId) => db.prepare('SELECT * FROM entries WHERE giveaway_id = ? AND user_id = ?').get(giveawayId, userId);
 const getEntries = (giveawayId) => db.prepare('SELECT * FROM entries WHERE giveaway_id = ?').all(giveawayId);
 const getEntryCount = (giveawayId) => db.prepare('SELECT SUM(entry_count) as total FROM entries WHERE giveaway_id = ?').get(giveawayId)?.total || 0;
 
+// ── Status helpers ────────────────────────────────────────────────────
+const setGiveawayStatus = (id, status) => db.prepare("UPDATE giveaways SET status = ? WHERE id = ?").run(status, id);
+const getExpiredGiveaways = () => db.prepare("SELECT * FROM giveaways WHERE status = 'active' AND end_time <= ?").all(Math.floor(Date.now() / 1000));
+
 // ── Winners ──────────────────────────────────────────────────────────
-const addWinner = (data) => db.prepare('INSERT INTO winners (giveaway_id, user_id, username) VALUES (@giveaway_id, @user_id, @username)').run(data);
+const addWinner = (giveawayId, userId) => {
+  try { db.prepare('INSERT OR IGNORE INTO winners (giveaway_id, user_id) VALUES (?, ?)').run(giveawayId, userId); } catch(e) {}
+};
 const getWinners = (giveawayId) => db.prepare('SELECT * FROM winners WHERE giveaway_id = ?').all(giveawayId);
 
 module.exports = {
   getGuild, upsertGuild, updateGuildSetting,
   createGiveaway, getGiveaway, getGiveawayByMessage, getActiveGiveaways,
   getAllActiveGiveaways, setMessageId, endGiveaway, cancelGiveaway, getEndedGiveaways,
+  setGiveawayStatus, getExpiredGiveaways,
   addRequirement, getRequirements,
   addBonusEntry, getBonusEntries,
-  addEntry, getEntry, getEntries, getEntryCount,
+  addEntry, getEntry, getEntries, getEntryCount, hasEntered,
   addWinner, getWinners,
   db
 };
