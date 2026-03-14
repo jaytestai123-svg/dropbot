@@ -1,7 +1,8 @@
-const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { v4: uuidv4 } = require('uuid');
 const ms = require('ms');
 const db = require('../../shared/database');
+const { buildGiveawayEmbed, buildEntryButtonForGiveaway } = require('../../shared/giveaway-engine');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -62,38 +63,12 @@ module.exports = {
     if (boostReq) db.addRequirement(id, 'boost', null);
     if (bonusRole) db.addBonusEntry(id, 'role', bonusRole.id, 2);
 
-    // Build requirements text
-    const reqLines = [];
-    if (reqRole)  reqLines.push(`• Must have <@&${reqRole.id}>`);
-    if (boostReq) reqLines.push('• Must be boosting this server');
-
-    const bonusLines = [];
-    if (bonusRole) bonusLines.push(`• <@&${bonusRole.id}> → **2× entries**`);
-
-    // Build embed
-    const embed = new EmbedBuilder()
-      .setTitle(`🎉 ${prize}`)
-      .setColor(0x5865F2)
-      .setDescription(description || null)
-      .addFields(
-        { name: '⏰ Ends', value: `<t:${endTime}:R>`, inline: true },
-        { name: '🏆 Winners', value: String(winnerCount), inline: true },
-        { name: '🎟️ Entries', value: '0', inline: true },
-      );
-
-    if (reqLines.length > 0) embed.addFields({ name: '📋 Requirements', value: reqLines.join('\n') });
-    if (bonusLines.length > 0) embed.addFields({ name: '✨ Bonus Entries', value: bonusLines.join('\n') });
-
-    embed
-      .setFooter({ text: `ID: ${shortId} • Hosted by ${interaction.user.username}` })
-      .setTimestamp();
-
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId(`dropbot_enter_${id}`)
-        .setLabel('🎉 Enter Giveaway')
-        .setStyle(ButtonStyle.Primary)
-    );
+    // Build embed using engine
+    const requirements = db.getRequirements(id);
+    const bonusEntries = db.getBonusEntries(id);
+    const giveaway = db.getGiveaway(id);
+    const embed = buildGiveawayEmbed(giveaway, 0, requirements, bonusEntries);
+    const row = buildEntryButtonForGiveaway(id, 0);
 
     const msg = await targetChannel.send({ embeds: [embed], components: [row] });
     db.setMessageId(id, msg.id);

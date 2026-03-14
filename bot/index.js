@@ -1,19 +1,20 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const fs = require('fs');
+const fs   = require('fs');
 const path = require('path');
-const db = require('../shared/database');
+const db   = require('../shared/database');
+const {
+  buildGiveawayEmbed, buildEndedEmbed, buildEntryButtonForGiveaway,
+  dramaticWinnerReveal, getEntryMessage, getMilestoneMessage,
+  selectWinners, getHypeLevel, COLORS
+} = require('../shared/giveaway-engine');
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-  ]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
 });
 
 client.commands = new Collection();
 
-// Load commands
 const commandsPath = path.join(__dirname, 'commands');
 for (const file of fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'))) {
   const cmd = require(path.join(commandsPath, file));
@@ -33,46 +34,40 @@ client.on('guildCreate', guild => {
 
 // ── Interaction handler ───────────────────────────────────────────────
 client.on('interactionCreate', async interaction => {
-  // Slash commands
   if (interaction.isChatInputCommand()) {
     const cmd = client.commands.get(interaction.commandName);
     if (!cmd) return;
     try {
       await cmd.execute(interaction, client);
     } catch (err) {
-      console.error(`[${interaction.commandName}] Error:`, err.message);
+      console.error(`[${interaction.commandName}]`, err.message);
       const payload = { content: `❌ Error: ${err.message}`, ephemeral: true };
-      if (interaction.replied || interaction.deferred) {
-        await interaction.followUp(payload).catch(() => {});
-      } else {
-        await interaction.reply(payload).catch(() => {});
-      }
+      if (interaction.replied || interaction.deferred) await interaction.followUp(payload).catch(() => {});
+      else await interaction.reply(payload).catch(() => {});
     }
     return;
   }
 
-  // Button: Enter giveaway
   if (interaction.isButton() && interaction.customId.startsWith('dropbot_enter_')) {
     const giveawayId = interaction.customId.replace('dropbot_enter_', '');
     await handleEntry(interaction, giveawayId);
   }
 });
 
-// ── Giveaway entry handler ────────────────────────────────────────────
+// ── Entry handler ─────────────────────────────────────────────────────
 async function handleEntry(interaction, giveawayId) {
   await interaction.deferReply({ ephemeral: true });
 
   const giveaway = db.getGiveaway(giveawayId);
   if (!giveaway || giveaway.status !== 'active') {
-    return interaction.editReply({ content: '❌ This giveaway has ended.' });
+    return interaction.editReply({ content: '❌ This giveaway has already ended.' });
   }
 
   const userId = interaction.user.id;
 
-  // Check already entered
   if (db.hasEntered(giveawayId, userId)) {
-    const count = db.getEntryCount(giveawayId);
-    return interaction.editReply({ content: `✅ You're already entered! **${count}** total entries.` });
+    const total = db.getEntryCount(giveawayId);
+    return interaction.editReply({ content: `✅ You're already entered! **${total}** total entries so far. Good luck! 🤞` });
   }
 
   // Check requirements
@@ -80,85 +75,78 @@ async function handleEntry(interaction, giveawayId) {
   for (const req of reqs) {
     if (req.type === 'role') {
       const member = await interaction.guild.members.fetch(userId).catch(() => null);
-      if (!member || !member.roles.cache.has(req.value)) {
-        return interaction.editReply({ content: `❌ You need the <@&${req.value}> role to enter.` });
-      }
+      if (!member?.roles.cache.has(req.value))
+        return interaction.editReply({ content: `❌ You need the <@&${req.value}> role to enter this giveaway.` });
     }
     if (req.type === 'boost') {
       const member = await interaction.guild.members.fetch(userId).catch(() => null);
-      if (!member?.premiumSince) {
-        return interaction.editReply({ content: '❌ You must be boosting this server to enter.' });
-      }
+      if (!member?.premiumSince)
+        return interaction.editReply({ content: '❌ You must be **boosting this server** to enter. 💎' });
     }
     if (req.type === 'min_days') {
       const member = await interaction.guild.members.fetch(userId).catch(() => null);
-      if (!member) return interaction.editReply({ content: '❌ Could not verify membership.' });
-      const daysMember = Math.floor((Date.now() - member.joinedTimestamp) / 86400000);
-      if (daysMember < parseInt(req.value)) {
-        return interaction.editReply({ content: `❌ You need to be in this server for at least **${req.value} days** to enter. (You've been here ${daysMember} days)` });
-      }
+      if (!member) return interaction.editReply({ content: '❌ Could not verify your membership.' });
+      const days = Math.floor((Date.now() - member.joinedTimestamp) / 86400000);
+      if (days < parseInt(req.value))
+        return interaction.editReply({ content: `❌ You need **${req.value}+ days** in this server to enter. You've been here **${days} days**.` });
     }
   }
 
-  // Calculate bonus entries
+  // Bonus entries
   let entryCount = 1;
   const bonusRules = db.getBonusEntries(giveawayId);
   for (const rule of bonusRules) {
     if (rule.type === 'role') {
       const member = await interaction.guild.members.fetch(userId).catch(() => null);
-      if (member?.roles.cache.has(rule.role_id)) entryCount = rule.multiplier;
+      if (member?.roles.cache.has(rule.role_id)) entryCount = Math.max(entryCount, rule.multiplier);
     }
     if (rule.type === 'boost') {
       const member = await interaction.guild.members.fetch(userId).catch(() => null);
-      if (member?.premiumSince) entryCount = rule.multiplier;
+      if (member?.premiumSince) entryCount = Math.max(entryCount, rule.multiplier);
     }
   }
 
-  // Record entry
   db.addEntry(giveawayId, userId, entryCount);
 
   const totalEntries = db.getEntryCount(giveawayId);
 
-  // Update embed entry count
+  // Update embed with new count + hype level
   await updateGiveawayEmbed(giveaway, totalEntries, interaction.guild);
 
-  const msg = entryCount > 1
-    ? `🎉 Entered with **${entryCount}x entries**! **${totalEntries}** total entries.`
-    : `🎉 You're in! **${totalEntries}** total entries.`;
+  // Check milestones
+  const milestone = getMilestoneMessage(totalEntries);
+  if (milestone) {
+    interaction.channel.send({ content: milestone }).catch(() => {});
+  }
 
-  await interaction.editReply({ content: msg });
+  await interaction.editReply({
+    content: getEntryMessage(entryCount, totalEntries, entryCount)
+  });
 }
 
-// ── Update embed entry count ─────────────────────────────────────────
+// ── Update embed ──────────────────────────────────────────────────────
 async function updateGiveawayEmbed(giveaway, entryCount, guild) {
   try {
     const channel = await guild.channels.fetch(giveaway.channel_id);
     const msg = await channel.messages.fetch(giveaway.message_id);
-    const oldEmbed = msg.embeds[0];
-    if (!oldEmbed) return;
-
-    const newEmbed = EmbedBuilder.from(oldEmbed);
-    const fields = (oldEmbed.fields || []).map(f => {
-      if (f.name === '🎟️ Entries') return { name: '🎟️ Entries', value: String(entryCount), inline: true };
-      return f;
-    });
-    newEmbed.setFields(fields);
-    await msg.edit({ embeds: [newEmbed], components: msg.components });
+    const reqs = db.getRequirements(giveaway.id);
+    const bonus = db.getBonusEntries(giveaway.id);
+    const newEmbed = buildGiveawayEmbed(giveaway, entryCount, reqs, bonus);
+    const newRow = buildEntryButtonForGiveaway(giveaway.id, entryCount);
+    await msg.edit({ embeds: [newEmbed], components: [newRow] });
   } catch (e) {
-    // Non-critical, skip
+    // Non-critical
   }
 }
 
-// ── Auto-ender (checks every 10s) ────────────────────────────────────
+// ── Auto-ender ────────────────────────────────────────────────────────
 function startAutoEnder() {
   setInterval(async () => {
-    const ended = db.getExpiredGiveaways();
-    for (const giveaway of ended) {
-      try {
-        await endGiveaway(giveaway);
-      } catch (e) {
-        console.error('Auto-end error:', e.message);
-      }
+    let expired = [];
+    try { expired = db.getExpiredGiveaways() || []; } catch (e) { return; }
+    for (const giveaway of expired) {
+      try { await endGiveaway(giveaway); }
+      catch (e) { console.error('Auto-end error:', e.message); }
     }
   }, 10000);
 }
@@ -172,53 +160,41 @@ async function endGiveaway(giveaway) {
   const channel = await guild.channels.fetch(giveaway.channel_id).catch(() => null);
   if (!channel) return;
 
-  // Pick winners
-  const entries = db.getEntries(giveaway.id); // flat weighted array of user IDs
-  const winnerObjs = selectWinners(giveaway, entries);
-  const winners = winnerObjs.map(w => w.user_id);
+  // Get entries and pick winners
+  const entries = db.getEntries(giveaway.id) || [];
+  const winners = selectWinners(giveaway, entries);
 
-  // Save winners
   for (const userId of winners) db.addWinner(giveaway.id, userId);
 
-  // Update embed
+  // Update the embed to ended state
   try {
     const msg = await channel.messages.fetch(giveaway.message_id);
     const endedEmbed = buildEndedEmbed(giveaway, winners, entries.length);
     const disabledRow = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId('dropbot_ended')
-        .setLabel(`🎉 Giveaway Ended — ${entries.length} entries`)
+        .setLabel(`🏆 Giveaway Ended — ${entries.length} entries`)
         .setStyle(ButtonStyle.Secondary)
         .setDisabled(true)
     );
     await msg.edit({ embeds: [endedEmbed], components: [disabledRow] });
   } catch (e) {}
 
-  // Announce winners
-  if (winners.length > 0) {
-    const winnerMentions = winners.map(w => `<@${w}>`).join(', ');
-    await channel.send({
-      content: `🎉 Congratulations ${winnerMentions}! You won **${giveaway.prize}**!\n> Use \`/greroll ${giveaway.id.slice(0,8)}\` to reroll.`
-    });
+  // Dramatic multi-message winner reveal
+  await dramaticWinnerReveal(channel, giveaway, winners, entries.length);
 
-    // DM winners
-    const config = db.getGuild(giveaway.guild_id);
-    if (config?.dm_winners !== 0) {
-      for (const winnerId of winners) {
-        const user = await client.users.fetch(winnerId).catch(() => null);
-        if (user) {
-          user.send(`🎉 You won **${giveaway.prize}** in **${guild.name}**!`).catch(() => {});
-        }
+  // DM winners
+  const config = db.getGuild(giveaway.guild_id);
+  if (config?.dm_winners !== 0 && winners.length > 0) {
+    for (const winnerId of winners) {
+      const user = await client.users.fetch(winnerId).catch(() => null);
+      if (user) {
+        user.send(`🎉 **You won!**\nPrize: **${giveaway.prize}** in **${guild.name}**!\nContact the server host to claim your prize.`).catch(() => {});
       }
     }
-  } else {
-    await channel.send(`😔 No valid entries for **${giveaway.prize}**. Giveaway cancelled.`);
   }
 }
 
-// Import winner selector
-const { selectWinners, buildEndedEmbed } = require('../shared/giveaway-engine');
+module.exports = { client, endGiveaway };
 
 client.login(process.env.DISCORD_TOKEN);
-
-module.exports = { client, endGiveaway };
