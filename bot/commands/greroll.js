@@ -10,8 +10,8 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addStringOption(o => o
       .setName('giveaway')
-      .setDescription('Select the giveaway to reroll')
-      .setRequired(true)
+      .setDescription('Select giveaway (defaults to most recent)')
+      .setRequired(false)
       .setAutocomplete(true)
     )
     .addIntegerOption(o => o
@@ -35,10 +35,18 @@ module.exports = {
   async execute(interaction) {
     await interaction.deferReply({ ephemeral: true });
 
-    const giveawayId = interaction.options.getString('giveaway');
     const count = interaction.options.getInteger('count') || 1;
 
+    // Default to most recently ended giveaway in this guild
     const data = require('../../data/dropbot.json');
+    const giveawayId = interaction.options.getString('giveaway') || (() => {
+      const ended = Object.values(data.giveaways || {})
+        .filter(g => g.guild_id === interaction.guildId && g.status === 'ended')
+        .sort((a, b) => b.end_time - a.end_time);
+      return ended[0]?.id || null;
+    })();
+
+    if (!giveawayId) return interaction.editReply({ content: '❌ No ended giveaways found in this server.' });
     const giveaway = data.giveaways?.[giveawayId];
 
     if (!giveaway || giveaway.guild_id !== interaction.guildId) {
