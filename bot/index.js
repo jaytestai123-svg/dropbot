@@ -5,9 +5,9 @@ const path = require('path');
 const db   = require('../shared/database');
 const {
   buildGiveawayEmbed, buildEndedEmbed, buildEntryButtonForGiveaway,
-  dramaticWinnerReveal, getEntryMessage, getMilestoneMessage,
-  selectWinners, getHypeLevel, COLORS
+  getEntryMessage, getMilestoneMessage, selectWinners, getHypeLevel, COLORS
 } = require('../shared/giveaway-engine');
+const { slotMachineReveal } = require('../shared/animations');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages]
@@ -185,8 +185,9 @@ async function endGiveaway(giveaway) {
     await msg.edit({ embeds: [endedEmbed], components: [disabledRow] });
   } catch (e) {}
 
-  // Dramatic multi-message winner reveal
-  await dramaticWinnerReveal(channel, giveaway, winners, entries.length);
+  // 🎰 Slot machine winner reveal
+  const uniqueEntrants = [...new Set(entries)];
+  await slotMachineReveal(channel, giveaway, winners, uniqueEntrants, client);
 
   // DM winners
   const config = db.getGuild(giveaway.guild_id);

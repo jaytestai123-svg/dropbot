@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const db = require('../../shared/database');
-const { selectWinners, dramaticWinnerReveal } = require('../../shared/giveaway-engine');
+const { selectWinners } = require('../../shared/giveaway-engine');
+const { slotMachineReveal } = require('../../shared/animations');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -38,7 +39,8 @@ module.exports = {
     // Announce in channel with dramatic reveal
     try {
       const channel = await interaction.guild.channels.fetch(giveaway.channel_id);
-      await dramaticWinnerReveal(channel, giveaway, winners, entries.length);
+      const uniqueEntrants = [...new Set(entries)];
+      await slotMachineReveal(channel, giveaway, winners, uniqueEntrants, interaction.client);
     } catch (e) {
       console.error('greroll channel error:', e.message);
     }

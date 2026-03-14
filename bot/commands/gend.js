@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 const db = require('../../shared/database');
-const { selectWinners, buildEndedEmbed, dramaticWinnerReveal } = require('../../shared/giveaway-engine');
+const { selectWinners, buildEndedEmbed } = require('../../shared/giveaway-engine');
+const { slotMachineReveal } = require('../../shared/animations');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -42,8 +43,9 @@ module.exports = {
       );
       await msg.edit({ embeds: [endedEmbed], components: [disabledRow] });
 
-      // Dramatic reveal
-      await dramaticWinnerReveal(channel, giveaway, winners, entries.length);
+      // 🎰 Slot machine reveal
+      const uniqueEntrants = [...new Set(entries)];
+      await slotMachineReveal(channel, giveaway, winners, uniqueEntrants, interaction.client);
     } catch (e) {
       console.error('gend embed update error:', e.message);
     }
