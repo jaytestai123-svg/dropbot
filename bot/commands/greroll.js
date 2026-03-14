@@ -1,33 +1,49 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const db = require('../../shared/database');
-const { selectWinners } = require('../../shared/giveaway-engine');
+const { selectWinners, dramaticWinnerReveal } = require('../../shared/giveaway-engine');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('greroll')
     .setDescription('🔄 Reroll winners for an ended giveaway')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-    .addStringOption(o => o.setName('id').setDescription('Giveaway ID').setRequired(true))
-    .addIntegerOption(o => o.setName('count').setDescription('How many new winners to pick').setMinValue(1).setMaxValue(20).setRequired(false)),
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+    .addStringOption(o => o.setName('id').setDescription('Giveaway ID (first 8 chars)').setRequired(true))
+    .addIntegerOption(o => o.setName('count').setDescription('How many winners to pick (default: 1)').setMinValue(1).setMaxValue(20)),
 
   async execute(interaction) {
-    await interaction.deferReply({ ephemeral: false });
+    await interaction.deferReply({ ephemeral: true });
+
     const shortId = interaction.options.getString('id');
-    const count = interaction.options.getInteger('count') || 1;
+    const count   = interaction.options.getInteger('count') || 1;
 
-    const ended = db.getEndedGiveaways(interaction.guildId, 20);
-    const giveaway = ended.find(g => g.id.startsWith(shortId));
-    if (!giveaway) return interaction.editReply({ content: '❌ Ended giveaway not found.' });
+    // Search all giveaways for this guild
+    const allData = require('../../data/dropbot.json');
+    const giveaway = Object.values(allData.giveaways).find(g =>
+      g.id.startsWith(shortId) && g.guild_id === interaction.guildId
+    );
 
-    const entries = db.getEntries(giveaway.id);
+    if (!giveaway) return interaction.editReply({ content: `❌ No giveaway found with ID \`${shortId}\`.` });
+
+    const entries = db.getEntries(giveaway.id) || [];
+    if (entries.length === 0) return interaction.editReply({ content: '😢 No entries to reroll from.' });
+
+    // Pick new winners — returns array of user ID strings
     const fakeGiveaway = { ...giveaway, winner_count: count };
-    const winners = selectWinners(fakeGiveaway, entries);
+    const winners = selectWinners(fakeGiveaway, entries)
+      .map(w => typeof w === 'object' ? w?.user_id : w)
+      .filter(Boolean);
 
-    if (winners.length === 0) return interaction.editReply({ content: '😢 No entries to reroll from.' });
+    if (winners.length === 0) return interaction.editReply({ content: '😢 Could not pick winners.' });
 
-    const winnerMentions = winners.map(w => `<@${w.user_id}>`).join(', ');
-    await interaction.editReply({
-      content: `🔄 **Reroll!** New winner(s) for **${giveaway.prize}**: ${winnerMentions} 🎉`
-    });
+    // Announce in channel with dramatic reveal
+    try {
+      const channel = await interaction.guild.channels.fetch(giveaway.channel_id);
+      await dramaticWinnerReveal(channel, giveaway, winners, entries.length);
+    } catch (e) {
+      console.error('greroll channel error:', e.message);
+    }
+
+    const winnerMentions = winners.map(id => `<@${id}>`).join(', ');
+    await interaction.editReply({ content: `🔄 Rerolled! New winner(s): ${winnerMentions}` });
   }
 };
